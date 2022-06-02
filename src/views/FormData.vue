@@ -98,7 +98,7 @@
     window.$ = window.jQuery = require('jquery');
     var {db} = require('../config/db.js');
     import firebase from '../config/db.js';
-
+    window.$ = window.jQuery = require('jquery');
     require('formBuilder/dist/form-render.min.js');
     require('formBuilder/dist/form-builder.min');
     require('bootstrap/dist/js/bootstrap.js');
@@ -106,7 +106,8 @@
 
     var formBuilder;
     import swal from 'sweetalert2'
-
+    var {db} = require('../config/db.js');
+    import {firestorage} from '../config/db.js';
     export default {
         data() {
             return {
@@ -116,7 +117,7 @@
                 heading: [],
                 totalData: [],
                 tableName: '',
-                popUpTitle: 'New Entry'
+                popUpTitle: 'New Entry',
             }
         },
         updated: function () {
@@ -130,6 +131,7 @@
         },
         methods: {
             getTableStructure: function () {
+                let that = this;
                 var data = [];
                 var field = [];
 
@@ -148,7 +150,7 @@
 
                     $.when($('#formRender').formRender(formRenderOpts)).then(function () {
 
-                        
+
                         //apply theme style of checkbox
                         $('input[type="checkbox"]').each(function () {
                             $(this).addClass('custom-control-input');
@@ -157,6 +159,109 @@
                         });
 
                         //apply theme style of checkbox
+                        $('input[type="radio"]').each(function () {
+                            $(this).addClass('custom-control-input');
+                            $(this).parent().addClass('custom-control custom-radio');
+                            $(this).parent().find('label').addClass('custom-control-label')
+                        });
+                        const object = {};
+                        $('select').each(function () {
+                            const element = $(this);
+                            
+                            if (element.attr('id') !=="second") {
+                            element.empty();
+                            element.append($('<option>', {
+                                value: null,
+                                text: ''
+                            }));
+                            firebase.database().ref().once('value', function(snapshot) {
+                                const val1 = snapshot.val();
+                                if (val1 !== null) {
+                                    Object.keys(val1).forEach((name, i) => {
+                                         element.append($('<option>', {
+                                            value: JSON.stringify(val1[name]),
+                                            text: name
+                                        }));
+                                    })
+                                }
+            
+                                element.on('change',function() {
+                                    const selected = element.find(":selected").text()
+
+                                   $("#second").remove();
+                                    $(".delete").remove();
+                                    if(element.val()) {
+                                        const name = element.attr('name');
+                                        const val = JSON.parse(element.val());
+                                        var json = Object.keys(val1[selected]);
+                                        var select = $("<select></select>").attr("id", "second").attr("name", "second");
+                                        select.append($("<option></option>").attr("value", "").text(""));
+                                        $.each(json,function(index,val){
+                                            select.append($("<option></option>").attr("value", val).text(val));
+                                        });     
+                                        element.parent().append(select);
+
+                                        $('#second').on('change',function() {
+                                             $(".delete").remove();
+                                            
+                                            const s =  $('#second').find(":selected").text();
+                                            Object.keys(val1[selected][s]).forEach((el, i) => {
+                                            const template = `<div class="delete delete-${i}" id="${el}"></div>`;
+                                            var txt2 = $(template).text(`${i+1} --- ${el} --- ${JSON.stringify(val1[selected][s][el])}`);
+                                            element.parent().append(txt2);
+                                            $(`.delete-${i}`).hover(function(e) {
+                                                $(this).css("cursor","pointer")
+                                            });
+                                            $(`.delete-${i}`).click(function() {
+                                                if (!object[selected]) {
+                                                    object[selected] = { [s] : []}
+                                                } 
+                                                 if (!object[selected][s]) {  
+                                                    object[selected][s] = [];
+                                                }
+                                                $(`.delete-${i}`).css("color","green")
+                                                // array = 
+                                                const index = object[selected][s].indexOf(el);
+                                                if (index > -1) {
+                                                    object[selected][s].splice(index, 1); 
+                                                    if (object[selected][s].length === 0) {
+                                                        delete object[selected][s];
+                                                        if (Object.keys(object).length === 1) {
+                                                            delete object[selected];
+                                                        }
+                                                    }
+                                                     $(this).css("color","#525f7f")
+                                                } else {
+                                                     object[selected][s].push(el);
+                                                     $(this).css("color","green")
+                                                }
+                                                console.log(object)
+                                               if (Object.keys(object).length > 0) {
+                                                   console.log(JSON.stringify(object))
+                                                    sessionStorage.setItem(name, JSON.stringify(object));
+                                               }
+                                            });
+                                        })
+                                        })
+                                        
+                                    }
+                                })
+                            });
+
+                            
+                            // $(this).append($('<option>', {
+                            //     value: 1,
+                            //     text: 'My option'
+                            // }));
+
+                            // $(this).append($('<option>', {
+                            //     value: 2,
+                            //     text: 'My option'
+                            // }));
+                            }
+                        });
+
+                        
                         $('input[type="radio"]').each(function () {
                             $(this).addClass('custom-control-input');
                             $(this).parent().addClass('custom-control custom-radio');
@@ -173,6 +278,29 @@
                             $(this).addClass('datepicker');
                             $(this).attr('type', 'text');
                             $(this).attr('readonly', 'true');
+                        });
+                        
+                         $('input[type="file"]').each(function () {
+                            $(this).attr('type', 'file');
+                            $(this).attr('readonly', 'true');
+                            const name = $(this).attr('name');
+                            $(this).on('change',function(e) {
+                                let fileList = e.target.files || e.dataTransfer.files;
+                                const array = [];
+                                Object.keys(fileList).forEach((file, i) => {
+                                    firestorage.ref('images/' + fileList[file].name).put(fileList[file]).then(function () {
+                                        firestorage.ref('images/').child(fileList[file].name).getDownloadURL().then(function (url) {
+                                            array.push(url);
+                                            if (i === Object.keys(fileList).length - 1) {
+                                                sessionStorage.setItem(name,JSON.stringify(array));
+                                            }
+                                            }).catch(function (error) {
+                                        }); 
+                                    });
+                                    
+                                });
+                        
+                            });
                         });
 
                         var Datepicker = (function () {
@@ -204,7 +332,7 @@
 
                 //var docRef = firebase.firestore().collection("tables").doc(this.id);
 
-                var that = this;
+                // var that = this;
                 
             },
             getDataList: function () {
@@ -375,12 +503,41 @@
 
                 var newFormData = $('#formRender').serializeArray();
 
+                $('input[type="file"]').each(function () {
+                    let url = sessionStorage.getItem($(this).attr('name'));
+                    newFormData.push({name: $(this).attr('name'), value: url });
+                    sessionStorage.removeItem($(this).attr('name'));
+                });
+
+               
+
                 var jsonObj = [];
                 $.each(newFormData, function (key, val) {
-                    var item = {};
-                    item [val.name] = val.value;
-                    jsonObj.push(item);
+                    console.log(key, val);
+                    if(val.name !== "second") {
+                         var item = {};
+                        item [val.name] = val.value;
+                        jsonObj.push(item);
+                    }
+                   
                 });
+                console.log(111111,jsonObj)
+                 $('select').each(function () {
+                    const element = $(this);
+                    
+                    if (element.attr('id') !=="second") {
+                        jsonObj = jsonObj.map(el => {
+                            if (el[element.attr('id')]) {
+                                console.log("hereee")
+                                return {[element.attr('id')]: sessionStorage.getItem(element.attr('name'))}
+                            }
+                            return el;
+                        })
+                        sessionStorage.removeItem(element.attr('name'));
+                    }
+                })
+
+
                 jsonObj = JSON.stringify(jsonObj);
                 var data_key = $('#data_key').val();
                 if (data_key == '') {

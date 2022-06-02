@@ -90,6 +90,26 @@
                     formData: field,
                     dataType: 'json'
                 };
+        //           var fields = [{
+        //     label: 'Star Rating',
+        //     attrs: {
+        //     type: 'uploadI'
+        //     },
+        //     icon: '🌟'
+        // }];
+
+        // var templates = {
+        //     uploadI: function(fieldData) {
+        //         console.log(fieldData)
+        //     return {
+        //         field: '<input type="file" id="' + fieldData.name + '"/>',
+        //         onRender: function() {
+                    
+        //         }
+        //     };
+        //     }
+        // };
+        //         formBuilder = $('#formBuilder1').formBuilder({fields, templates});
                 formBuilder = $('#formBuilder1').formBuilder(options);
             });
 

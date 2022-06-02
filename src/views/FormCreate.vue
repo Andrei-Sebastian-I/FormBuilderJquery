@@ -76,11 +76,44 @@
             }
         },
         mounted() {
-            var options = {
-                disableFields: ['file', 'header', 'hidden', 'paragraph', 'button'],
-                disabledActionButtons: ['data', 'save', 'clear']
-            };
-            formBuilder = $('#formBuilder').formBuilder(options);
+            // var options = {
+            //     disableFields: ['header', 'hidden', 'paragraph', 'button'],
+            //     disabledActionButtons: ['data', 'save', 'clear'],
+            //     inputSets: [
+            //         {
+            //             label: 'Upload Photo/Video',
+            //             name: 'user-upload', // optional - one will be generated from the label if name not supplied
+            //             showHeader: true, // optional - Use the label as the header for this set of inputs
+            //             fields: [
+            //                 {
+            //                 type: 'uploadI',
+            //                 label: 'Upload Photo/Video',
+            //                 className: 'form-control'
+            //                 },
+            //             ]
+            //         }
+            //     ]
+            // };
+
+            var fields = [{
+            label: 'Limks',
+            attrs: {
+            type: 'list'
+            },
+            icon: '🌟'
+        }];
+
+        var templates = {
+            list: function(fieldData) {
+                return {
+                    field: `
+                        <p type="list" id=${fieldData.name} />
+                    `
+                };
+            }
+        };
+
+            formBuilder = $('#formBuilder').formBuilder({fields, templates});
 
         },
         methods: {
