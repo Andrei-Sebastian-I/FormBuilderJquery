@@ -23,6 +23,8 @@
                         </div>
                     </div>
                 </div>
+                <p style="margin-left: 20px">select: class <span style="color:red;font-size:20px;">form-select</span> (ref type)</p>
+                <hr style="margin:0;">
                 <div class="card-body pt-0 pt-md-4">
                     <div class="row">
                         <div class="col-12">
@@ -96,18 +98,18 @@
             // };
 
             var fields = [{
-            label: 'Limks',
+            label: 'rm',
             attrs: {
-            type: 'list'
+            type: 'rm'
             },
             icon: '🌟'
         }];
 
         var templates = {
-            list: function(fieldData) {
+            rm: function(fieldData) {
                 return {
                     field: `
-                        <p type="list" id=${fieldData.name} />
+                        <p type="rm" id=${fieldData.name} />
                     `
                 };
             }

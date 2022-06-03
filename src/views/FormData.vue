@@ -165,7 +165,7 @@
                             $(this).parent().find('label').addClass('custom-control-label')
                         });
                         const object = {};
-                        $('select').each(function () {
+                        $('.form-select').each(function () {
                             const element = $(this);
                             
                             if (element.attr('id') !=="second") {
@@ -521,8 +521,8 @@
                     }
                    
                 });
-                console.log(111111,jsonObj)
-                 $('select').each(function () {
+
+                 $('.form-select').each(function () {
                     const element = $(this);
                     
                     if (element.attr('id') !=="second") {

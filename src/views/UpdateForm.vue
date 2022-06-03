@@ -23,6 +23,8 @@
                         </div>
                     </div>
                 </div>
+                <p style="margin-left: 20px">select: class <span style="color:red;font-size:20px;">form-select</span> (ref type)</p>
+                <hr style="margin:0;">
                 <div class="card-body pt-0 pt-md-4">
                     <div class="row">
                         <div class="col-12">
@@ -85,31 +87,11 @@
                 field = data.field;
                 this.formName = data.name;
                 var options = {
-                    disableFields: ['file', 'header', 'hidden', 'paragraph', 'button'],
+                    disableFields: ['header', 'hidden', 'paragraph', 'button'],
                     disabledActionButtons: ['data', 'save', 'clear'],
                     formData: field,
                     dataType: 'json'
                 };
-        //           var fields = [{
-        //     label: 'Star Rating',
-        //     attrs: {
-        //     type: 'uploadI'
-        //     },
-        //     icon: '🌟'
-        // }];
-
-        // var templates = {
-        //     uploadI: function(fieldData) {
-        //         console.log(fieldData)
-        //     return {
-        //         field: '<input type="file" id="' + fieldData.name + '"/>',
-        //         onRender: function() {
-                    
-        //         }
-        //     };
-        //     }
-        // };
-        //         formBuilder = $('#formBuilder1').formBuilder({fields, templates});
                 formBuilder = $('#formBuilder1').formBuilder(options);
             });
 
