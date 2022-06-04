@@ -164,102 +164,76 @@
                             $(this).parent().addClass('custom-control custom-radio');
                             $(this).parent().find('label').addClass('custom-control-label')
                         });
-                        const object = {};
-                        $('.form-select').each(function () {
+
+                        let object = {};
+                        $('.form-select').each(async function () {
                             const element = $(this);
-                            
-                            if (element.attr('id') !=="second") {
+                            const name = element.attr('name');
+
+                            sessionStorage.removeItem(element.attr('name'));
+                            element.addClass("form-control");
                             element.empty();
                             element.append($('<option>', {
                                 value: null,
                                 text: ''
                             }));
-                            firebase.database().ref().once('value', function(snapshot) {
-                                const val1 = snapshot.val();
-                                if (val1 !== null) {
-                                    Object.keys(val1).forEach((name, i) => {
-                                         element.append($('<option>', {
-                                            value: JSON.stringify(val1[name]),
-                                            text: name
+
+                            await db.ref('data').once('value', async function(snapshot) {
+                                const tableValues = snapshot.val();
+                                Object.keys(tableValues).map(async (idTable) => {
+                                    await db.ref('tables').child(idTable).on('value', (snap) => {
+                                        element.append($('<option>', {
+                                            value: JSON.stringify({ id: idTable, value: tableValues[idTable] }),
+                                            text: snap.val().name
                                         }));
                                     })
-                                }
-            
-                                element.on('change',function() {
-                                    const selected = element.find(":selected").text()
-
-                                   $("#second").remove();
-                                    $(".delete").remove();
-                                    if(element.val()) {
-                                        const name = element.attr('name');
-                                        const val = JSON.parse(element.val());
-                                        var json = Object.keys(val1[selected]);
-                                        var select = $("<select></select>").attr("id", "second").attr("name", "second");
-                                        select.append($("<option></option>").attr("value", "").text(""));
-                                        $.each(json,function(index,val){
-                                            select.append($("<option></option>").attr("value", val).text(val));
-                                        });     
-                                        element.parent().append(select);
-
-                                        $('#second').on('change',function() {
-                                             $(".delete").remove();
-                                            
-                                            const s =  $('#second').find(":selected").text();
-                                            Object.keys(val1[selected][s]).forEach((el, i) => {
-                                            const template = `<div class="delete delete-${i}" id="${el}"></div>`;
-                                            var txt2 = $(template).text(`${i+1} --- ${el} --- ${JSON.stringify(val1[selected][s][el])}`);
-                                            element.parent().append(txt2);
-                                            $(`.delete-${i}`).hover(function(e) {
-                                                $(this).css("cursor","pointer")
-                                            });
-                                            $(`.delete-${i}`).click(function() {
-                                                if (!object[selected]) {
-                                                    object[selected] = { [s] : []}
-                                                } 
-                                                 if (!object[selected][s]) {  
-                                                    object[selected][s] = [];
-                                                }
-                                                $(`.delete-${i}`).css("color","green")
-                                                // array = 
-                                                const index = object[selected][s].indexOf(el);
-                                                if (index > -1) {
-                                                    object[selected][s].splice(index, 1); 
-                                                    if (object[selected][s].length === 0) {
-                                                        delete object[selected][s];
-                                                        if (Object.keys(object).length === 1) {
-                                                            delete object[selected];
-                                                        }
-                                                    }
-                                                     $(this).css("color","#525f7f")
-                                                } else {
-                                                     object[selected][s].push(el);
-                                                     $(this).css("color","green")
-                                                }
-                                                console.log(object)
-                                               if (Object.keys(object).length > 0) {
-                                                   console.log(JSON.stringify(object))
-                                                    sessionStorage.setItem(name, JSON.stringify(object));
-                                               }
-                                            });
-                                        })
-                                        })
-                                        
-                                    }
                                 })
+
+                                element.on('change',function() {
+                                    object = {};
+                                    $(".delete").remove();
+                                    const selectData = JSON.parse(this.value);
+                                    console.log(selectData.value)
+                                    Object.keys(selectData.value).forEach((id, i) => {
+                                        const template = `<div class="delete delete-${i}" id="${id}"></div>`;
+                                        const dataToAppend = JSON.parse(selectData.value[id])[0];
+                                        var dataAppend = $(template).text(`${i+1}. ${Object.keys(dataToAppend)[0]}: ${Object.values(dataToAppend)[0]}`);
+                                        element.parent().append(dataAppend);
+
+                                        $(`.delete-${i}`).hover(function(e) {
+                                            $(this).css("cursor","pointer")
+                                        });
+
+                                        $(`.delete-${i}`).click(function() {
+                                            const actualId = selectData.id;
+                                            if (!object[actualId]) {
+                                                object[actualId] = [];
+                                            }
+
+                                            $(`.delete-${i}`).css("color","green");
+
+                                            const index = object[actualId].indexOf(id);
+                                            if (index > -1) {
+                                                object[actualId].splice(index, 1); 
+                                                if (object[actualId].length === 0) {
+                                                    delete object[actualId];
+                                                }
+                                                $(this).css("color","#525f7f");
+                                            } else {
+                                                object[actualId].push(id);
+                                                $(this).css("color","green");
+                                            }
+
+                                            console.log(object)
+                                            if (Object.keys(object).length > 0) {
+                                                sessionStorage.setItem(name, JSON.stringify(object));
+                                            }
+                                        });
+                                    });
+                                });
                             });
-
-                            
-                            // $(this).append($('<option>', {
-                            //     value: 1,
-                            //     text: 'My option'
-                            // }));
-
-                            // $(this).append($('<option>', {
-                            //     value: 2,
-                            //     text: 'My option'
-                            // }));
-                            }
                         });
+                        
 
                         
                         $('input[type="radio"]').each(function () {
@@ -329,10 +303,6 @@
                     });
 
                 });
-
-                //var docRef = firebase.firestore().collection("tables").doc(this.id);
-
-                // var that = this;
                 
             },
             getDataList: function () {
@@ -405,6 +375,13 @@
                                         $('#newDataEntry').find('textarea[name="' + title + '"]').text(item[title]);
                                         $('#newDataEntry').find('textarea[name="' + title + '"]').prop("disabled", true);
                                     } else if (tagName == 'SELECT') {
+                                        // console.log(title);
+                                        // if ($(editor_data).find('.form-select').length > 0) {
+                                        //     $(editor_data).find('.form-select').remove();
+                                        //     const template = `<input >`;
+                                        //     var dataAppend = $(template).text(`${i+1}. ${Object.keys(dataToAppend)[0]}: ${Object.values(dataToAppend)[0]}`);
+                                        //     element.parent().append(dataAppend);
+                                        // } 
                                         $('#newDataEntry').find('#' + title + ' option[value=' + item[title] + ']').attr('selected', 'selected');
                                         $('#newDataEntry').find('#' + title).prop("disabled", true);
                                     }
@@ -524,17 +501,14 @@
 
                  $('.form-select').each(function () {
                     const element = $(this);
-                    
-                    if (element.attr('id') !=="second") {
-                        jsonObj = jsonObj.map(el => {
-                            if (el[element.attr('id')]) {
-                                console.log("hereee")
-                                return {[element.attr('id')]: sessionStorage.getItem(element.attr('name'))}
-                            }
-                            return el;
-                        })
-                        sessionStorage.removeItem(element.attr('name'));
-                    }
+                    jsonObj = jsonObj.map(el => {
+                        if (el[element.attr('id')]) {
+                            return {[element.attr('id')]: sessionStorage.getItem(element.attr('name'))}
+                        }
+                        return el;
+                    })
+                    sessionStorage.removeItem(element.attr('name'));
+                    $(".delete").remove();
                 })
 
 
