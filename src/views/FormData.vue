@@ -375,15 +375,16 @@
                                         $('#newDataEntry').find('textarea[name="' + title + '"]').text(item[title]);
                                         $('#newDataEntry').find('textarea[name="' + title + '"]').prop("disabled", true);
                                     } else if (tagName == 'SELECT') {
-                                        // console.log(title);
-                                        // if ($(editor_data).find('.form-select').length > 0) {
-                                        //     $(editor_data).find('.form-select').remove();
-                                        //     const template = `<input >`;
-                                        //     var dataAppend = $(template).text(`${i+1}. ${Object.keys(dataToAppend)[0]}: ${Object.values(dataToAppend)[0]}`);
-                                        //     element.parent().append(dataAppend);
-                                        // } 
-                                        $('#newDataEntry').find('#' + title + ' option[value=' + item[title] + ']').attr('selected', 'selected');
-                                        $('#newDataEntry').find('#' + title).prop("disabled", true);
+                                        if ($('#newDataEntry').find('#' + title).hasClass("form-select")) {
+                                            const select = $('#newDataEntry').find('#' + title);
+                                            const template = `<input class="form-control" id="${title}" name="${title}" disabled>`;
+                                            var dataAppend = $(template);
+                                            select.parent().append(dataAppend);
+                                            select.remove();
+                                        } else {
+                                            $('#newDataEntry').find('#' + title + ' option[value=' + item[title] + ']').attr('selected', 'selected');
+                                            $('#newDataEntry').find('#' + title).prop("disabled", true);
+                                        }
                                     }
                                 }
                                 if ($('#newDataEntry').find('input[name="' + title + '"]').length) {
@@ -396,6 +397,12 @@
                                                 $(this).prop('checked', false);
                                             }
                                         });
+                                    } else if (type == 'file') {
+                                        const select = $('#newDataEntry').find('#' + title);
+                                        const template = `<input class="form-control" id="${title}" name="${title}" disabled>`;
+                                        var dataAppend = $(template).val(item[title]);
+                                        select.parent().append(dataAppend);
+                                        select.remove();
                                     } else {
                                         $('#newDataEntry').find('input[name="' + title + '"]').val(item[title]);
                                     }
